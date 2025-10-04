@@ -1,0 +1,42 @@
+project (
+    name = "Bridle"
+    version = "Github"
+)
+
+operation ( "taskGroup" _taskGroupInfo )
+
+settings (
+    dependencyPath = "@libs"
+)
+
+dependencies ()
+
+defineAction (
+    name = "build"
+    actionType = "shell"
+    expects = ( "ostype" "osarch" "suffix" )
+    env = (
+        "GOOS" = "${ostype}"
+        "GOARCH" = "${osarch}"
+    )
+    cmdlines = ( "go build -o bridle.${suffix} src/main.go" )
+)
+
+_taskGroupInfo (
+    tasks = (
+        (
+            type = "action"
+            name = "build"
+            ostype = "linux"
+            osarch = "amd64"
+            suffix = "linux-amd64"
+        )
+        (
+            type = "action"
+            name = "build"
+            ostype = "linux"
+            osarch = "386"
+            suffix = "linux-i386"
+        )
+    )
+)
