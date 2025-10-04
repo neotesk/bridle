@@ -5,15 +5,15 @@
    Copyright (C) 2025-20xx Neo <neotesk>
 */
 
-package main
+package main;
 
 import (
 	"fmt"
 	"os"
-
 	"github.com/neotesk/bridle/internal/cli"
 	"github.com/neotesk/bridle/internal/helpers"
 	"github.com/neotesk/bridle/internal/types"
+	"github.com/neotesk/bridle/src/tasks"
 );
 
 var version = "github-flavor";
@@ -61,18 +61,12 @@ func main () {
     // Check if we should print the help page
     if ( argsList.Flags[ "h" ] ) {
         flags := "-";
-        tasks := []string {
-            "performAll",
-            "installDependencies",
-            "initProject",
-            "newProject",
-        };
         _tasks := "";
         for _, key := range defaultArgs.Flags {
             flags += key.Name;
         }
-        for _, key := range tasks {
-            _tasks += "   " + key + "\n";
+        for _, key := range Tasks.TaskList {
+            _tasks += "   " + key.Name + "\n";
         }
         fmt.Printf(
             "%s %s %s %s\n%s\n%s%s\n   %s\n",
@@ -95,5 +89,8 @@ func main () {
 
     // Get the command
     command := Helpers.ItemCoalesce( argsList.Keywords, 0, "performAll" );
-    fmt.Println( command );
+    cwd := CLI.HandleError( os.Getwd() );
+    Tasks.RunTask( command, Types.CLITaskArguments {
+        CWD: cwd,
+    } );
 }
