@@ -8,108 +8,128 @@
 package OTSFile;
 
 import (
+	"bufio"
+	"io"
 	"os"
-	"strings"
-
-	CLI "github.com/neotesk/bridle/internal/cli"
-	"github.com/neotesk/bridle/internal/types"
+	"unicode"
+	"github.com/neotesk/bridle/internal/cli"
 );
 
-var validAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
-var validNumbers = "1234567890";
-var validSymbols = "()@=";
-var validIdentifierNext = validAlphabet + validNumbers;
-var validIgnore = " \n\t";
-
-func tokenizeIdentifier ( idx int, charList []string ) ( int, Types.StringToken ) {
-    output := Types.StringToken {
-        Type: "Identifier",
-        Value: "",
+func newTokenizer ( reader io.Reader, filename string ) *Tokenizer {
+    return &Tokenizer{
+        position: Position { Line: 1, Column: 0 },
+        reader: bufio.NewReader( reader ),
+        filename: filename,
     };
-    curIdx := idx;
-    for strings.Contains( validIdentifierNext, charList[ curIdx ] ) {
-        output.Value = output.Value + charList[ curIdx ];
-        curIdx += 1;
-    }
-    return curIdx - idx, output;
 }
 
-func tokenizeNumber ( idx int, charList []string ) ( int, Types.NumericToken ) {
-    output := Types.NumericToken {
-        Type: "Number",
-        Value: 0,
-    };
-    output_temp := "";
-    curIdx := idx;
-    char := charList[ curIdx ];
-    for strings.Contains( validNumbers,  char ) || ( char == "." && !strings.Contains( output_temp, "." ) ) {
-        output_temp = output_temp + char;
-        curIdx += 1;
-        char = charList[ curIdx ];
-    }
-    return curIdx - idx, output;
+func ( tk *Tokenizer ) iterPos () {
+    tk.position.Line++;
+    tk.position.Column = 0;
 }
 
-func tokenizeString ( idx int, l int, r int, charList []string ) ( int, int, int, Types.StringToken ) {
-    curIdx := idx + 1;
-    curChar := charList[ curIdx ];
-    output := Types.StringToken {
-        Type: "String",
-        Value: "",
-    };
-    for curChar != "\"" {
-        if curChar == "\n" {
-            l += 1;
-            r = 1;
-        }
-        output.Value = output.Value + curChar;
-        curIdx += 1;
-        curChar = charList[ curIdx ];
+func ( tk *Tokenizer ) revIter () {
+    if err := tk.reader.UnreadRune(); err != nil {
+        panic( err );
     }
-    curIdx += 1;
-    return curIdx - idx, l, r, output;
+    tk.position.Column--;
 }
 
-func Tokenize ( data string, filename string ) []any {
-    charList := strings.Split( data, "" );
-    idx := 0;
-    line := 1;
-    row := 1;
-    charLen := len( charList );
-    tokenList := []any {};
-    for idx < charLen {
-        curChar := charList[ idx ];
-        var nextIdx = 0;
-        var token any;
-        if strings.Contains( validAlphabet, curChar ) {
-            nextIdx, token = tokenizeIdentifier( idx, charList );
-        } else if strings.Contains( validNumbers, curChar ) {
-            nextIdx, token = tokenizeNumber( idx, charList );
-        } else if strings.Contains( validSymbols, curChar ) {
-            nextIdx = 1;
-            token = Types.StringToken {
-                Type: "Symbol",
-                Value: curChar,
-            };
-        } else if curChar == "\"" {
-            nextIdx, line, row, token = tokenizeString( idx, line, row, charList );
-        } else if strings.Contains( validIgnore, curChar ) {
-            idx += 1;
-            if curChar == "\n" {
-                row = 1;
-                line += 1;
-            } else {
-                row += 1;
+func ( tk *Tokenizer ) Tokenize () Token {
+    // Used for iterating a string
+    shouldIterString := false;
+    shouldIterNumeric := false;
+    shouldIterIdentifier := false;
+    iterStartPos := Position {};
+    iterRecord := "";
+
+    // Iteration
+    for {
+        r, _, err := tk.reader.ReadRune();
+        if err != nil {
+            if err == io.EOF {
+                return Token { Kind: T_EOF, Value: "", Position: tk.position };
             }
-            continue;
+            // This is a different error.
+            panic( err );
         }
-        if nextIdx == 0 {
-            CLI.ErrPrintf( "Fatal Error! Unknown token '%s' in file %s:%d:%d\n", curChar, filename, line, row );
-            os.Exit( 1 );
+
+        // Iterate the column
+        tk.position.Column++;
+
+        // Check if we are iterating a string
+        if shouldIterString {
+            switch r {
+                case '"':
+                    return Token { Kind: T_String, Value: iterRecord, Position: iterStartPos };
+                default:
+                    if r == '\n' {
+                        tk.iterPos();
+                    }
+                    iterRecord = iterRecord + string( r );
+                    continue;
+            }
         }
-        idx += nextIdx;
-        row += nextIdx;
-        tokenList = append( tokenList, token );
+
+        // Check if we are iterating a numeric
+        if shouldIterNumeric {
+            if unicode.IsDigit( r ) {
+                iterRecord = iterRecord + string( r );
+                continue;
+            } else {
+                tk.revIter();
+                return Token { Kind: T_Number, Value: iterRecord, Position: iterStartPos };
+            }
+        }
+
+        // Check if we are iterating an identifer
+        if shouldIterIdentifier {
+            if unicode.IsLetter( r ) || unicode.IsDigit( r ) {
+                iterRecord = iterRecord + string( r );
+                continue;
+            } else {
+                tk.revIter();
+                return Token { Kind: T_Identifier, Value: iterRecord, Position: iterStartPos };
+            }
+        }
+
+        switch r {
+            // Ignore new line
+            case '\n':
+                tk.iterPos();
+
+            // Symbols
+            case '(':
+                return Token { Kind: T_OpenParen, Value: "(", Position: tk.position };
+            case ')':
+                return Token { Kind: T_CloseParen, Value: ")", Position: tk.position };
+            case '=':
+                return Token { Kind: T_Equals, Value: "=", Position: tk.position };
+
+            // String Definition
+            case '"':
+                shouldIterString = true;
+                iterStartPos = tk.position;
+                continue;
+
+            // Identifiers, numbers and other
+            default:
+                if unicode.IsSpace( r ) {
+                    continue;
+                } else if unicode.IsDigit( r ) {
+                    shouldIterNumeric = true;
+                    iterStartPos = tk.position;
+                    iterRecord = iterRecord + string( r );
+                    continue;
+                } else if unicode.IsLetter( r ) || r == '_' {
+                    shouldIterIdentifier = true;
+                    iterStartPos = tk.position;
+                    iterRecord = iterRecord + string( r );
+                    continue;
+                } else {
+                    CLI.ErrPrintf( "Fatal Error! Unknown token '%s' in file %s:%d:%d\n", string( r ), tk.filename, tk.position.Line, tk.position.Column );
+                    os.Exit( 1 );
+                }
+        }
     }
-    return tokenList;
 }
