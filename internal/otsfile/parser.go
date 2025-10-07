@@ -119,7 +119,7 @@ func Parse ( filename string ) OTSDocument {
     tkLen := len( tokens );
 
     data := OTSDocument {
-        Items: map [ string ] OTSObject {},
+        Items: []OTSDescriptor {},
     };
 
     for {
@@ -133,7 +133,10 @@ func Parse ( filename string ) OTSDocument {
         val := parseArray( filename, &tokens, &tkIndex );
 
         // Put it inside the data
-        data.Items[ curTok.Value ] = val;
+        data.Items = append( data.Items, OTSDescriptor {
+            Name: curTok.Value,
+            Item: val,
+        } );
 
         if tkIndex >= tkLen {
             break;

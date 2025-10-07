@@ -72,6 +72,11 @@ type OTSObject struct {
     Length int
 }
 
+type OTSDescriptor struct {
+    Name string
+    Item OTSObject
+}
+
 type OTSDocument struct {
-    Items map [ string ] OTSObject
+    Items []OTSDescriptor
 }
