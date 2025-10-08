@@ -10,6 +10,7 @@ package Tasks;
 import (
 	"fmt"
 	"github.com/neotesk/bridle/internal/otsfile"
+	"github.com/neotesk/bridle/internal/bridleots"
 	"github.com/neotesk/bridle/internal/types"
 );
 
@@ -17,7 +18,8 @@ var performAllTask = Types.CLITask {
     Name: "performAll",
     Action: func ( args Types.CLITaskArguments ) {
         fmt.Println( "Perform All" );
-        fmt.Println( OTSFile.Parse( "bridle.ots" ) );
+        parsed := OTSFile.Parse( "bridle.ots" );
+        fmt.Println( BridleOTS.ParseDocument( parsed ) );
         installDependenciesTask.Action( args );
     },
 }
