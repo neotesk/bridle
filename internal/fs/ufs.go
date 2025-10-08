@@ -1,8 +1,8 @@
 /*
-   Truct, Pretty minimal workflow runner.
-   Open-Source, WTFPL License.
+    Bridle, a Javascript Project Manager
+    Open-Source, WTFPL License.
 
-   Copyright (C) 2025-20xx Neo <ntsk@airmail.cc>
+    Copyright (C) 2025-20xx Neo <neotesk>
 */
 
 package Filesystem;
