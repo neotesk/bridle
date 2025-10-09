@@ -10,6 +10,7 @@ package BridleOTS;
 import (
     "github.com/neotesk/bridle/internal/otsfile"
     "github.com/neotesk/bridle/internal/helpers"
+    "github.com/neotesk/bridle/internal/cli"
 )
 
 func ParseDocument ( doc OTSFile.OTSDocument ) BridleDocument {
@@ -46,6 +47,13 @@ func ParseDocument ( doc OTSFile.OTSDocument ) BridleDocument {
                     OperationName: Helpers.MakeCoalesce( item.Item.Items[ 0 ], "bundle" ),
                     Description: Helpers.MakeCoalesce( item.Item.Items[ 1 ], "_bundleTask" ),
                 } );
+            case "dependencies":
+                if item.Item.Length > 0 {
+                    CLI.Die( "Fatal Error! Dependencies object cannot contain non-keyed elements." );
+                }
+                for key, value := range item.Item.Items {
+                    output.Dependencies[ Helpers.Make[ string ]( key ) ] = Helpers.Make[ string ]( value );
+                }
         }
     }
 
