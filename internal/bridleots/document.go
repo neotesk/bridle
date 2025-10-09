@@ -40,7 +40,12 @@ func ParseDocument ( doc OTSFile.OTSDocument ) BridleDocument {
                     Source: Helpers.MakeCoalesce( item.Item.Items[ "source" ], "null" ),
                     Author: Helpers.MakeCoalesce( item.Item.Items[ "author" ], "null" ),
                     License: Helpers.MakeCoalesce( item.Item.Items[ "license" ], "null" ),
-                }
+                };
+            case "operation":
+                output.Operations = append( output.Operations, BridleOperation {
+                    OperationName: Helpers.MakeCoalesce( item.Item.Items[ 0 ], "bundle" ),
+                    Description: Helpers.MakeCoalesce( item.Item.Items[ 1 ], "_bundleTask" ),
+                } );
         }
     }
 

@@ -16,8 +16,7 @@ import (
 
 func expect ( filename string, token Token, kind TokenKind ) {
     if ( token.Kind != kind ) {
-        CLI.ErrPrintf( "Fatal Error! Expected token kind '%s' but found '%s' in file %s:%d:%d\n", kind.Name(), token.GetType(), filename, token.Position.Line, token.Position.Column );
-        os.Exit( 1 );
+        CLI.Die( "Fatal Error! Expected token kind '%s' but found '%s' in file %s:%d:%d\n", kind.Name(), token.GetType(), filename, token.Position.Line, token.Position.Column );
     }
 }
 
@@ -31,14 +30,12 @@ func expectMulti ( filename string, token Token, kind... TokenKind ) {
     for _, k := range kind {
         kinds = append( kinds, "'" + k.Name() + "'" );
     }
-    CLI.ErrPrintf( "Fatal Error! Expected %s but found '%s' in file %s:%d:%d\n", strings.Join( kinds, " or " ), token.GetType(), filename, token.Position.Line, token.Position.Column );
-    os.Exit( 1 );
+    CLI.Die( "Fatal Error! Expected %s but found '%s' in file %s:%d:%d\n", strings.Join( kinds, " or " ), token.GetType(), filename, token.Position.Line, token.Position.Column );
 }
 
 func item ( arr *[]Token, idx int ) Token {
     if idx >= len( *arr ) {
-        CLI.ErrPrintf( "Fatal Error! Expected a token but reached end of line.\n" );
-        os.Exit( 1 );
+        CLI.Die( "Fatal Error! Expected a token but reached end of line.\n" );
     }
     return ( *arr )[ idx ];
 }
@@ -94,8 +91,7 @@ func parseExpression ( filename string, _tk *[]Token, idx *int ) any {
         case T_OpenParen:
             return parseArray( filename, _tk, idx );
         default:
-            CLI.ErrPrintf( "Fatal Error! Invalid token '%s' at %s:%d:%d (Expected an expression)\n", curTok.GetType(), filename, curTok.Position.Line, curTok.Position.Column );
-            os.Exit( 1 );
+            CLI.Die( "Fatal Error! Invalid token '%s' at %s:%d:%d (Expected an expression)\n", curTok.GetType(), filename, curTok.Position.Line, curTok.Position.Column );
     }
 
     return nil;

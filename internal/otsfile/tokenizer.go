@@ -10,7 +10,6 @@ package OTSFile;
 import (
 	"bufio"
 	"io"
-	"os"
 	"unicode"
 	"github.com/neotesk/bridle/internal/cli"
 );
@@ -127,8 +126,7 @@ func ( tk *Tokenizer ) Tokenize () Token {
                     iterRecord = iterRecord + string( r );
                     continue;
                 } else {
-                    CLI.ErrPrintf( "Fatal Error! Unknown token '%s' in file %s:%d:%d\n", string( r ), tk.filename, tk.position.Line, tk.position.Column );
-                    os.Exit( 1 );
+                    CLI.Die( "Fatal Error! Unknown token '%s' in file %s:%d:%d\n", string( r ), tk.filename, tk.position.Line, tk.position.Column );
                 }
         }
     }

@@ -8,7 +8,6 @@
 package Tasks;
 
 import (
-	"os"
 	"github.com/neotesk/bridle/internal/cli"
 	"github.com/neotesk/bridle/internal/types"
 );
@@ -31,8 +30,7 @@ var TaskList = mapTasks();
 func GetTask ( taskName string ) Types.CLITask {
     task, exists := TaskList[ taskName ];
     if !exists {
-        CLI.ErrPrintf( "Fatal Error! Given task with the name %s does not exist.\n", taskName );
-        os.Exit( 1 );
+        CLI.Die( "Fatal Error! Given task with the name %s does not exist.\n", taskName );
     }
     return task;
 }

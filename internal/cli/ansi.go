@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"runtime/debug"
 );
 
 type COLOR_LEVEL int;
@@ -291,6 +292,11 @@ var IsDebug = false;
 func ErrPrintf ( format string, args... any ) {
     fmt.Fprintf( os.Stderr, Boldify( Colorify( format, "ff4040" ) ), args... );
     if IsDebug {
-        panic( fmt.Sprintf( format, args... ) );
+        debug.PrintStack();
     }
+}
+
+func Die ( format string, args... any ) {
+    ErrPrintf( format, args... );
+    os.Exit( 1 );
 }

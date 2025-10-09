@@ -8,7 +8,6 @@
 package Helpers;
 
 import (
-    "os"
     "github.com/neotesk/bridle/internal/cli"
 )
 
@@ -29,8 +28,7 @@ func ItemCoalesce [ T any ] ( arr []T, idx int, def T ) T {
 func Make [ T any ] ( thing any ) T {
     output, ok := thing.( T );
     if !ok {
-        CLI.ErrPrintf( "Fatal Error: Cannot convert object into desired type.\n" );
-        os.Exit( 1 );
+        CLI.Die( "Fatal Error: Cannot convert object into desired type.\n" );
     }
     return output;
 }
@@ -41,8 +39,7 @@ func MakeCoalesce [ T any ] ( thing any, def T ) T {
     }
     output, ok := thing.( T );
     if !ok {
-        CLI.ErrPrintf( "Fatal Error: Cannot convert object into desired type.\n" );
-        os.Exit( 1 );
+        CLI.Die( "Fatal Error: Cannot convert object into desired type.\n" );
     }
     return output;
 }
