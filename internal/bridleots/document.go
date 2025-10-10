@@ -8,6 +8,7 @@
 package BridleOTS;
 
 import (
+    "strings"
     "github.com/neotesk/bridle/internal/otsfile"
     "github.com/neotesk/bridle/internal/helpers"
     "github.com/neotesk/bridle/internal/cli"
@@ -71,6 +72,14 @@ func ParseDocument ( doc OTSFile.OTSDocument ) BridleDocument {
                     action[ Helpers.Make[ string ]( key ) ] = value;
                 }
                 output.Actions[ Helpers.Make[ string ]( action[ "name" ] ) ] = action;
+            case "settings":
+                output.Settings = BridleSettings {
+                    DependenciesPath: Helpers.MakeCoalesce( item.Item.Items[ "dependenciesPath" ], "@libs" ),
+                };
+            default:
+                if !strings.HasPrefix( item.Name, "_" ) {
+                    CLI.Die( "Fatal Error! Unknown descriptor '%s' (If you want to use this object as a reference, put an underscore at the start.)\n", item.Name );
+                }
         }
     }
 

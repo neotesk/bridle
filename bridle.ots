@@ -6,7 +6,7 @@ project (
 operation ( "taskGroup" _taskGroupInfo )
 
 settings (
-    dependencyPath = "@libs"
+    dependenciesPath = "@libs"
 )
 
 dependencies ()
