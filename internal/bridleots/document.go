@@ -13,6 +13,16 @@ import (
     "github.com/neotesk/bridle/internal/cli"
 )
 
+func lookupDescriptor ( doc OTSFile.OTSDocument, name string ) OTSFile.OTSDescriptor {
+    for _, item := range doc.Items {
+        if item.Name == name {
+            return item;
+        }
+    }
+    CLI.Die( "Fatal error! Cannot find the referenced object '%s'\n", name );
+    return OTSFile.OTSDescriptor {}; /* Need this to supress the error, it doesn't do anything */
+}
+
 func ParseDocument ( doc OTSFile.OTSDocument ) BridleDocument {
     output := BridleDocument {
         Project: BridleProject {
@@ -43,9 +53,10 @@ func ParseDocument ( doc OTSFile.OTSDocument ) BridleDocument {
                     License: Helpers.MakeCoalesce( item.Item.Items[ "license" ], "null" ),
                 };
             case "operation":
+                objName := Helpers.MakeCoalesce( item.Item.Items[ 1 ], "_bundleTask" );
                 output.Operations = append( output.Operations, BridleOperation {
                     OperationName: Helpers.MakeCoalesce( item.Item.Items[ 0 ], "bundle" ),
-                    Description: Helpers.MakeCoalesce( item.Item.Items[ 1 ], "_bundleTask" ),
+                    Description: lookupDescriptor( doc, objName ),
                 } );
             case "dependencies":
                 if item.Item.Length > 0 {
@@ -54,6 +65,12 @@ func ParseDocument ( doc OTSFile.OTSDocument ) BridleDocument {
                 for key, value := range item.Item.Items {
                     output.Dependencies[ Helpers.Make[ string ]( key ) ] = Helpers.Make[ string ]( value );
                 }
+            case "defineAction":
+                action := BridleAction {};
+                for key, value := range item.Item.Items {
+                    action[ Helpers.Make[ string ]( key ) ] = value;
+                }
+                output.Actions[ Helpers.Make[ string ]( action[ "name" ] ) ] = action;
         }
     }
 

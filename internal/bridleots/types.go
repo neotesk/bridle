@@ -7,6 +7,8 @@
 
 package BridleOTS;
 
+import "github.com/neotesk/bridle/internal/otsfile"
+
 type BridleProject struct {
     Name string
     Description string
@@ -27,7 +29,7 @@ type BridleActions map [ string ] BridleAction;
 
 type BridleOperation struct {
     OperationName string
-    Description string
+    Description OTSFile.OTSDescriptor
 }
 
 type BridleOperations []BridleOperation

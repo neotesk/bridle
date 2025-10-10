@@ -65,7 +65,6 @@ func parseArray ( filename string, _tk *[]Token, idx *int ) OTSObject {
             data.Items[ tok.Value ] = parseExpression( filename, _tk, idx );
         } else {
             data.Items[ data.Length ] = parseExpression( filename, _tk, idx );
-            *idx++;
             data.Length++;
         }
     }
